@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>ASCII Banner 生成器</title>
+    <style>
+        :root{
+            --bg:#0b0c0f; --panel:#121317; --muted:#9aa0a6; --text:#e6e6e6;
+            --blue:#1a73e8; --blue-hover:#1666cc; --border:#1f2937;
+        }
+        *{box-sizing:border-box}
+        body{
+            background:var(--bg); color:var(--text);
+            font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial;
+            max-width:980px; margin:24px auto; padding:0 16px;
+        }
+        h1{font-size:20px;margin:0 0 16px}
+        .card{background:var(--panel); border:1px solid var(--border); border-radius:12px; padding:16px}
+        .row{display:flex;gap:12px;align-items:center;margin:10px 0}
+        .row label{min-width:90px;color:var(--muted)}
+        input[type="text"],input[type="number"]{
+            background:#0f1115; color:var(--text); border:1px solid var(--border);
+            border-radius:10px; padding:8px 10px; outline:none; width:100%;
+        }
+        input[type="number"]{width:110px}
+        .lines{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+        .line{display:flex;gap:8px}
+        .btn{
+            padding:8px 12px; border:1px solid var(--blue); background:var(--blue);
+            color:#fff; border-radius:10px; cursor:pointer; transition:all .15s ease;
+            user-select:none;
+        }
+        .btn:hover{background:var(--blue-hover); border-color:var(--blue-hover)}
+        .toolbar{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}
+        .muted{color:var(--muted); font-size:12px}
+        .result-wrap{position:relative}
+        pre{
+            background:#000; color:#ddd; border:1px solid var(--border);
+            border-radius:12px; padding:16px; margin-top:8px; line-height:1.05;
+            white-space:pre; overflow:auto; max-height:60vh;
+            font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+        }
+        .copy-btn{
+            position:absolute; right:12px; top:12px; z-index:1;
+            padding:6px 10px; border-radius:8px; border:1px solid var(--blue);
+            background:var(--blue); color:#fff; cursor:pointer; transition:all .15s ease;
+        }
+        .copy-btn:hover{background:var(--blue-hover); border-color:var(--blue-hover)}
+    </style>
+</head>
+<body>
+<h1>ASCII Banner 生成器</h1>
+
+<div class="card">
+    <div class="lines" id="lines"></div>
+    <div class="toolbar">
+        <button class="btn" id="addLine">换一行</button>
+        <button class="btn" id="removeLine">删除最后一行</button>
+        <button class="btn" id="resetBtn">恢复默认</button>
+    </div>
+
+    <div class="row">
+        <label>字号</label>
+        <input type="number" id="size" value="12" min="6" max="72">
+        <span class="muted">更小=整体更小</span>
+    </div>
+    <div class="row">
+        <label>横向缩放</label>
+        <input type="number" id="scale" value="2" min="1" max="5">
+        <span class="muted">宽度放大倍数</span>
+    </div>
+    <div class="row">
+        <label>阈值</label>
+        <input type="number" id="threshold" value="100" min="0" max="255">
+        <span class="muted">越大越稀疏</span>
+    </div>
+    <div class="row">
+        <label>行距1</label>
+        <input type="number" id="gap" value="0" min="0" max="10">
+        <span class="muted">不同段之间额外空白行</span>
+    </div>
+
+    <div class="toolbar">
+        <button class="btn" id="previewBtn">生成预览</button>
+        <button class="btn" id="saveBtn">保存为txt</button>
+    </div>
+
+    <div class="result-wrap">
+        <button class="copy-btn" id="copyBtn">复制</button>
+        <pre id="result"> </pre>
+    </div>
+</div>
+
+<script>
+    const linesBox = document.getElementById('lines');
+    const addLineBtn = document.getElementById('addLine');
+    const removeLineBtn = document.getElementById('removeLine');
+    const resetBtn = document.getElementById('resetBtn');
+    const previewBtn = document.getElementById('previewBtn');
+    const saveBtn = document.getElementById('saveBtn');
+    const copyBtn = document.getElementById('copyBtn');
+    const result = document.getElementById('result');
+
+    function addLine(value=''){
+        const wrap = document.createElement('div');
+        wrap.className = 'line';
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = '输入一行文字';
+        input.value = value;
+        wrap.appendChild(input);
+        linesBox.appendChild(wrap);
+    }
+    function clearLines(){ linesBox.innerHTML=''; }
+    function getLines(){
+        return [...document.querySelectorAll('.line input')]
+            .map(i=>i.value).filter(v=>v.trim()!=='');
+    }
+    function setDefaults(){
+        document.getElementById('size').value = 12;
+        document.getElementById('scale').value = 2;
+        document.getElementById('threshold').value = 100;
+        document.getElementById('gap').value = 0;
+    }
+    function params(){
+        return {
+            size: document.getElementById('size').value || 12,
+            scale: document.getElementById('scale').value || 2,
+            threshold: document.getElementById('threshold').value || 100,
+            gap: document.getElementById('gap').value || 0
+        };
+    }
+    async function callApi(path){
+        const lines = getLines();
+        if(!lines.length){ result.textContent = '请先输入文字'; return null; }
+        const p = params();
+        const usp = new URLSearchParams({
+            text: lines.join('\n'),
+            size: String(p.size),
+            scale: String(p.scale),
+            threshold: String(p.threshold),
+            gap: String(p.gap)
+        });
+        // 用 GET，避免你那边 POST 405
+        const res = await fetch(path + '?' + usp.toString(), { method: 'GET' });
+        return res.text();
+    }
+
+    addLineBtn.onclick = ()=> addLine('');
+    removeLineBtn.onclick = ()=> { if(linesBox.lastElementChild) linesBox.removeChild(linesBox.lastElementChild); };
+
+    resetBtn.onclick = ()=>{
+        clearLines(); addLine('');
+        setDefaults();
+        result.textContent = ' ';
+    };
+
+    previewBtn.onclick = async ()=>{
+        result.textContent = '生成中...';
+        try{
+            const txt = await callApi('/banner/ascii');
+            if(txt!=null) result.textContent = txt;
+        }catch(e){ result.textContent = '生成失败：' + e; }
+    };
+
+    saveBtn.onclick = async ()=>{
+        try{
+            const txt = await callApi('/banner/ascii');
+            if(txt==null) return;
+            const blob = new Blob([txt], {type:'text/plain;charset=utf-8'});
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'banner.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(a.href);
+        }catch(e){ result.textContent = '下载失败：' + e; }
+    };
+
+    copyBtn.onclick = async ()=>{
+        try{
+            await navigator.clipboard.writeText(result.textContent || '');
+            copyBtn.textContent = '已复制';
+            setTimeout(()=>copyBtn.textContent='复制',1200);
+        }catch(e){
+            copyBtn.textContent = '复制失败';
+            setTimeout(()=>copyBtn.textContent='复制',1200);
+        }
+    };
+
+    // 初始：只有一行空输入 + 默认参数
+    addLine('');
+    setDefaults();
+</script>
+</body>
+</html>
