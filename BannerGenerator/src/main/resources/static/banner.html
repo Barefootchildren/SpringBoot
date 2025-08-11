@@ -142,7 +142,6 @@
             threshold: String(p.threshold),
             gap: String(p.gap)
         });
-        // 用 GET，避免你那边 POST 405
         const res = await fetch(path + '?' + usp.toString(), { method: 'GET' });
         return res.text();
     }
@@ -190,7 +189,7 @@
         }
     };
 
-    // 初始：只有一行空输入 + 默认参数
+    //初始：只有一行空输入+默认参数
     addLine('');
     setDefaults();
 </script>
