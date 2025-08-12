@@ -1,0 +1,29 @@
+
+com:
+  homework:
+    entity:
+      teacher:
+        name: 王老师
+        gender: 男
+        age: 40
+
+      students:
+        student-list:
+          - name: 张三
+            gender: 女
+            age: ${random.int[15,18]}
+            grades:
+              chinese: ${random.int[80,90]}
+              math: ${random.int[70,80]}
+              eng: ${random.int[90,100]}
+          - name: 张四
+            gender: 男
+            age: ${random.int[15,18]}
+            grades:
+              chinese: ${random.int[80,90]}
+              math: ${random.int[70,80]}
+              eng: ${random.int[90,100]}
+spring:
+  profiles:
+    active: dev
+
