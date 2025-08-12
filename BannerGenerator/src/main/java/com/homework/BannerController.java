@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 @RequestMapping("/banner")
 public class BannerController {
 
-    // 多行 ASCII：gap 控制行与行之间的额外空白行数（默认 0）
+    //多行 ASCII：gap 控制行与行之间的额外空白行数（默认 0）
     @RequestMapping(
             value = "/ascii",
             method = {RequestMethod.GET, RequestMethod.POST},
@@ -36,7 +36,7 @@ public class BannerController {
             String line = lines[i].trim();
             if (line.isEmpty()) continue;
             out.append(generateAsciiLine(line, size, scale, threshold));
-            // 只在两段字符画之间按需插空行
+            //只在两段字符画之间按需插空行
             if (i < lines.length - 1) {
                 for (int k = 0; k < gap; k++) out.append('\n');
             }
@@ -65,11 +65,11 @@ public class BannerController {
         return ResponseEntity.ok("已写入：" + file.getAbsolutePath());
     }
 
-    // —— 生成“单行”的 ASCII，并自动裁掉上下黑边 —— //
+    //生成单行的 ASCII，并自动裁掉上下黑边
     private String generateAsciiLine(String text, int size, int scale, int threshold) {
         Font font = loadFont(size);
 
-        // 量测文本
+        //量测文本
         BufferedImage probe = new BufferedImage(1, 1, BufferedImage.TYPE_INT_RGB);
         Graphics2D pg = probe.createGraphics();
         pg.setFont(font);
@@ -80,9 +80,9 @@ public class BannerController {
         pg.dispose();
 
         int imgW = Math.max(textW + 2, 2);
-        int imgH = Math.max(ascent + pg.getFontMetrics(font).getDescent(), 2); // 更贴合字形高度
+        int imgH = Math.max(ascent + pg.getFontMetrics(font).getDescent(), 2);
 
-        // 黑底白字
+        //黑底白字
         BufferedImage img = new BufferedImage(imgW, imgH, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
         g.setColor(Color.BLACK);
@@ -91,10 +91,10 @@ public class BannerController {
         g.setFont(font);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        g.drawString(text, 1, Math.min(ascent, imgH - 1)); // 去掉多余上边距
+        g.drawString(text, 1, Math.min(ascent, imgH - 1));
         g.dispose();
 
-        // 横向缩放
+        //横向缩放
         if (scale > 1) {
             int wScaled = imgW * scale;
             BufferedImage scaled = new BufferedImage(wScaled, imgH, BufferedImage.TYPE_INT_RGB);
@@ -105,16 +105,16 @@ public class BannerController {
             img = scaled;
         }
 
-        // —— 裁掉上下黑边，进一步缩小“行距” —— //
+        //裁掉上下黑边，缩小行距
         int top = 0, bottom = img.getHeight() - 1;
-        // 找到顶部第一行“亮点”
+        //找到顶部第一行亮点
         outerTop:
         for (; top < img.getHeight(); top++) {
             for (int x = 0; x < img.getWidth(); x++) {
                 if (isBright(img.getRGB(x, top), threshold)) break outerTop;
             }
         }
-        // 找到底部最后一行“亮点”
+        //找到底部最后一行亮点
         outerBottom:
         for (; bottom >= top; bottom--) {
             for (int x = 0; x < img.getWidth(); x++) {
@@ -141,7 +141,7 @@ public class BannerController {
     }
 
     private Font loadFont(float size) {
-        // 简化：走系统字体；若你有 ttf，可按之前版本从 resources/fonts 加载
+        //用系统字体；其他ttf，可从resources/fonts加载
         Font f = new Font("Microsoft YaHei", Font.BOLD, (int) size);
         if (f == null || "Dialog".equals(f.getFamily())) {
             f = new Font("SansSerif", Font.BOLD, (int) size);
