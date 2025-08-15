@@ -1,0 +1,40 @@
+{
+  "groups": [
+    {
+      "name": "com.homework.entity.students",
+      "type": "com.homework.entity.StudentList",
+      "sourceType": "com.homework.entity.StudentList"
+    },
+    {
+      "name": "com.homework.entity.teacher",
+      "type": "com.homework.entity.Teacher",
+      "sourceType": "com.homework.entity.Teacher"
+    }
+  ],
+  "properties": [
+    {
+      "name": "com.homework.entity.students.student-list",
+      "type": "java.util.List<com.homework.entity.Student>",
+      "sourceType": "com.homework.entity.StudentList"
+    },
+    {
+      "name": "com.homework.entity.teacher.age",
+      "type": "java.lang.Integer",
+      "sourceType": "com.homework.entity.Teacher"
+    },
+    {
+      "name": "com.homework.entity.teacher.gender",
+      "type": "java.lang.String",
+      "sourceType": "com.homework.entity.Teacher"
+    },
+    {
+      "name": "com.homework.entity.teacher.name",
+      "type": "java.lang.String",
+      "sourceType": "com.homework.entity.Teacher"
+    }
+  ],
+  "hints": [],
+  "ignored": {
+    "properties": []
+  }
+}
