@@ -24,6 +24,7 @@
         <module>Day05</module>
         <module>Day06</module>
         <module>Day07</module>
+        <module>Day08</module>
     </modules>
     <url/>
     <licenses>
@@ -83,6 +84,10 @@
             <groupId>com.github.pagehelper</groupId>
             <artifactId>pagehelper-spring-boot-starter</artifactId>
             <version>2.1.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-freemarker</artifactId>
         </dependency>
 
     </dependencies>
